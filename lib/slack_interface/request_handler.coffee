@@ -5,6 +5,7 @@ class SlackInterfaceRequestHandler
     @spotify = spotify
     @volume = volume
     @plugin_handler = require("../../lib/plugin_handler")()
+    @aliases = require("../../lib/slack_interface/aliases")
 
     @endpoints =
       handle:
@@ -20,8 +21,6 @@ class SlackInterfaceRequestHandler
             
             hold_vol = false
 
-            muppets = ['spotify:track:3iwC7lNEnW2XefyROIiAtB', 'spotify:track:3sXJTHeaEXEgziOCyI4DYl', 'spotify:track:6eVUH8bqIo2x6sfeeUGkHU', 'spotify:track:6RKbWCytFTB6emlcnrsdpt', 'spotify:track:5Kgjzdpk6INHN7MHVW1CdM', 'spotify:track:0SMobBlnSvGStk8rDfXLgs']
-
             switch @auth.command.toLowerCase()
               when 'pause' then @spotify.pause()
               when 'skip' then @spotify.skip()
@@ -30,13 +29,7 @@ class SlackInterfaceRequestHandler
               when 'restart' then process.exit 1
               when 'mute' then @volume.set 0
               when 'unmute' then @volume.set 5
-              when 'scrubs' then @spotify.play 'spotify:track:1KGi9sZVMeszgZOWivFpxs', @queuer
-              when 'spaceman' then @spotify.play 'spotify:track:2Elq6GxVh8v9QFCF3ca2Xc', @queuer
-              when 'uptownfunk' then @spotify.play 'spotify:track:32OlwWuMpZ6b0aN2RZOeMS', @queuer
-              when 'hustle' then @spotify.play 'spotify:track:0rBMP6VVGRgwnzZCLpijyl', @queuer
-              when 'attak' then @spotify.play 'spotify:track:6XNmtLiveX987arpfhYGrj', @queuer
-              when 'muppets' then @spotify.play muppets[Math.floor(Math.random()*muppets.length)], @queuer
-
+              
               when 'critical'
                 @exec('~/critical-script', (error, stdout, stderr) -> )
 
@@ -171,6 +164,9 @@ class SlackInterfaceRequestHandler
                 \n> `list rename <old name> <new name>` - Renames the specified list.
                 \n> `list random` - Plays a random list.
                 \n> `list <name>` - Selects the specified list and starts playback."
+
+              else if @auth.command.toLowerCase() in @aliases
+                @spotify.play @aliases[@auth.command.toLowerCase()], @que
 
               else
                 # Fallback to external plugins.
